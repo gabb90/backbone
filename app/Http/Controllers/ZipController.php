@@ -50,7 +50,7 @@ class ZipController extends Controller
     public function show(Request $request, $id)
     {
         try {
-            Cache::rememberForever($id, function () use ($id) {
+            return Cache::rememberForever($id, function () use ($id) {
                 return Zip::select([
                     'd_codigo AS zip_code',
                     'D_mnpio AS locality',
