@@ -6,6 +6,7 @@ use App\Http\Requests\StoreZipRequest;
 use App\Http\Requests\UpdateZipRequest;
 use App\Models\Zip;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class ZipController extends Controller
 {
@@ -49,16 +50,16 @@ class ZipController extends Controller
     public function show(Request $request, $id)
     {
         try {
-            $results = Zip::select([
-                'd_codigo AS zip_code',
-                'D_mnpio AS locality',
-                'd_tipo_asenta AS settlement_type',
-                'd_zona AS zone_type',
-            ])->where('d_codigo', $id)
+            Cache::rememberForever($id, function () use ($id) {
+                return Zip::select([
+                    'd_codigo AS zip_code',
+                    'D_mnpio AS locality',
+                    'd_tipo_asenta AS settlement_type',
+                    'd_zona AS zone_type',
+                ])->where('d_codigo', $id)
 
-            ->get();
-
-            return $results;
+                ->get();
+            });
         } catch (\Throwable$th) {
             throw $th;
         }
