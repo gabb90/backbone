@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreZipRequest;
 use App\Http\Requests\UpdateZipRequest;
 use App\Models\Zip;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 
@@ -42,25 +43,29 @@ class ZipController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * Funcion para buscar datos de un codigo postal.
      *
-     * @param  Request  $id
-     * @return \Illuminate\Http\Response
+     * @param  String  $zip
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function show(Request $request, $id)
+    public function show(Request $request, $zip)
     {
         try {
-            return Cache::rememberForever($id, function () use ($id) {
-                return Zip::select([
+            return Zip::get()->unique('d_codigo')->pluck('d_codigo');
+            return Cache::rememberForever($zip, function () use ($zip) {
+                $results = Zip::select([
                     'd_codigo AS zip_code',
                     'D_mnpio AS locality',
                     'd_tipo_asenta AS settlement_type',
                     'd_zona AS zone_type',
-                ])->where('d_codigo', $id)
-
-                ->get();
+                ])->where('d_codigo', $zip)
+                    ->get();
+                if ($results == null) {
+                    throw new Exception('No hay informacion para ese codigo postal.', 404);
+                }
+                return $results;
             });
-        } catch (\Throwable$th) {
+        } catch (Exception $th) {
             throw $th;
         }
     }
