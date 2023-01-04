@@ -51,7 +51,6 @@ class ZipController extends Controller
     public function show(Request $request, $zip)
     {
         try {
-            return Zip::get()->unique('d_codigo')->pluck('d_codigo');
             return Cache::rememberForever($zip, function () use ($zip) {
                 $results = Zip::select([
                     'd_codigo AS zip_code',
