@@ -45,19 +45,19 @@ class ZipController extends Controller
     /**
      * Funcion para buscar datos de un codigo postal.
      *
-     * @param  String  $zip
+     * @param  String  $zip_code
      * @return \Illuminate\Http\JsonResponse
      */
-    public function show(Request $request, $zip)
+    public function show(Request $request, $zip_code)
     {
         try {
-            return Cache::rememberForever($zip, function () use ($zip) {
+            return Cache::rememberForever($zip_code, function () use ($zip_code) {
                 $results = Zip::select([
                     'd_codigo AS zip_code',
                     'D_mnpio AS locality',
                     'd_tipo_asenta AS settlement_type',
                     'd_zona AS zone_type',
-                ])->where('d_codigo', $zip)
+                ])->where('d_codigo', $zip_code)
                     ->get();
                 if ($results == null) {
                     throw new Exception('No hay informacion para ese codigo postal.', 404);
