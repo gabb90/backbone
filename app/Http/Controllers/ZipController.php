@@ -51,19 +51,31 @@ class ZipController extends Controller
     public function show(Request $request, $zip_code)
     {
         try {
-            return Cache::rememberForever($zip_code, function () use ($zip_code) {
-                $results = Zip::select([
+            $results = Cache::remember($zip_code, 60*60*1, function () use ($zip_code) {
+                return Zip::select([
                     'd_codigo AS zip_code',
-                    'D_mnpio AS locality',
+                    'D_mnpio AS D_mnpio',
+                    'd_estado AS d_estado',
+                    'd_ciudad AS d_ciudad',
                     'd_tipo_asenta AS settlement_type',
                     'd_zona AS zone_type',
                 ])->where('d_codigo', $zip_code)
                     ->get();
-                if ($results == null) {
-                    throw new Exception('No hay informacion para ese codigo postal.', 404);
-                }
-                return $results;
             });
+            if ($results == null || $results->isEmpty()) {
+                return response(['error' => 'No hay informacion para ese codigo postal.'], 404);
+            }
+            $first = $results->first();
+
+            $results = [
+                "zip_code" => $first->zip_code,
+                "locality" => $first->d_ciudad,
+                "federal_entity" => $first->d_estado,
+                "municipality" => $first->D_mnpio,
+                "settlements" => $results->toArray(),
+            ];
+
+            return $results;
         } catch (Exception $th) {
             throw $th;
         }
